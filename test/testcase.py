@@ -1,9 +1,21 @@
 # Attribution: https://github.com/xzkostyan/clickhouse-sqlalchemy
 import re
+
+from sqlalchemy import create_engine
+from sqlalchemy import MetaData
+from sqlalchemy.dialects import registry
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Query
+from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
 
-from sqlalchemy.orm import Query
 from base import dialect
+
+registry.register("clickhouse", "base", "dialect")
+engine = create_engine('clickhouse://default:@ch-0/default')
+session = sessionmaker(bind=engine)()
+metadata = MetaData(bind=engine)
+Base = declarative_base(metadata=metadata)
 
 class BaseTestCase(TestCase):
     strip_spaces = re.compile(r'[\n\t]')

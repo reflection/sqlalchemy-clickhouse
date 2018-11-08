@@ -137,7 +137,17 @@ class ClickHouseCompiler(PGCompiler):
             functions.with_rollup: 'WITH ROLLUP',
             functions.with_totals: 'WITH TOTALS'
         })
-        summaries = [c for c in select._group_by_clause if getattr(c, 'name', None) and c.name in summ_names]
+        summaries = []
+        for c in select._group_by_clause:
+            try:
+                if c.name in summ_names:
+                    summaries.append(c)
+                    continue
+                # Declarative wraps summary functions in label element
+                if c.element.name in summ_names:
+                    summaries.append(c)
+            except AttributeError:
+                pass
         # Use Counter instead of set to preserve order of group by cols
         select._group_by_clause = ClauseList(
           *list(Counter(select._group_by_clause) - Counter(summaries))
@@ -146,10 +156,8 @@ class ClickHouseCompiler(PGCompiler):
         group_by = super(ClickHouseCompiler, self).group_by_clause(select, **kw)
         if group_by:
             text = group_by
-        for name in summ_names:
-            for s in summaries:
-                if s.name == name:
-                    text += ' ' + self.process(s)
+        for s in summaries:
+            text += ' ' + self.process(s)
         return text
 
     def limit_clause(self, select, **kw):
