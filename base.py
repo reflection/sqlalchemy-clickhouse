@@ -52,6 +52,7 @@ ischema_names = {
     'Enum8': VARCHAR,
     'Enum16': VARCHAR,
     'Array': ARRAY,
+    'Decimal': DECIMAL,
     'LowCardinality(String)': VARCHAR,
 }
 
@@ -267,10 +268,9 @@ class ClickHouseDialect(default.DefaultDialect):
                 # AggregateFunction(sum, Int64) for an Int64 type
                 # remove first 24 chars and remove the last one to get Int64
                 col_type = r.type[23:-1]
-            else:
+            elif not r.type.startswith("Decimal"):
                 # Take out the more detailed type information
                 # e.g. 'map<int,int>' -> 'map'
-                #      'decimal(10,1)' -> decimal
                 col_type = re.search(r'^\w+', r.type).group(0)
             try:
                 coltype = ischema_names[col_type]

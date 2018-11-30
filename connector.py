@@ -89,6 +89,10 @@ def create_ad_hoc_field(cls, db_type):
         inner_field = cls.create_ad_hoc_field(db_type[9 : -1])
         return orm_fields.NullableField(inner_field)
 
+    if db_type.startswith('Decimal'):
+        precision, scale = [int(n.strip()) for n in db_type[8 : -1].split(',')]
+        return orm_fields.DecimalField(precision, scale)
+
     # Simple fields
     name = db_type + 'Field'
     if not hasattr(orm_fields, name):
