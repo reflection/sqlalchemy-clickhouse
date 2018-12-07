@@ -79,8 +79,8 @@ def create_ad_hoc_field(cls, db_type):
     if db_type.startswith('FixedString'):
         db_type = 'String'
 
-    if db_type == 'LowCardinality(String)':
-        db_type = 'String'
+    if db_type.startswith('LowCardinality'):
+        return cls.create_ad_hoc_field(db_type[15 : -1])
 
     if db_type.startswith('DateTime'):
         db_type = 'DateTime'
