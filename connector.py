@@ -147,13 +147,14 @@ class Connection(Database):
     """
         These objects are small stateless factories for cursors, which do all the real work.
     """
-    def __init__(self, db_name, db_url='http://localhost:8123/', username=None, password=None, readonly=False):
+    def __init__(self, db_name, db_url='http://localhost:8123/', username=None, password=None, readonly=False, session_id=None):
         super(Connection, self).__init__(db_name, db_url, username, password, readonly)
         self.db_name = db_name
         self.db_url = db_url
         self.username = username
         self.password = password
         self.readonly = readonly
+        self.session_id = session_id
 
     def close(self):
         pass
@@ -226,7 +227,7 @@ class Cursor(object):
     def close(self):
         pass
 
-    def execute(self, operation, parameters=None, is_response=True):
+    def execute(self, operation, parameters=None, is_response=True, settings=None):
         """Prepare and execute a database operation (query or command). """
         if parameters is None or not parameters:
             sql = operation
@@ -237,12 +238,17 @@ class Cursor(object):
 
         self._state = self._STATE_RUNNING
         self._uuid = uuid.uuid1()
+        if settings is None and (is_response or self._db.session_id):
+            settings = {}
+        if self._db.session_id:
+            settings.update({'session_id': self._db.session_id})
 
         if is_response:
-            response = self._db.select(sql, settings={'query_id': self._uuid})
+            settings.update({'query_id': self._uuid})
+            response = self._db.select(sql, settings=settings)
             self._process_response(response)
         else:
-            self._db.raw(sql)
+            self._db.raw(sql, settings=settings)
 
     def executemany(self, operation, seq_of_parameters):
         """Prepare a database operation (query or command) and then execute it against all parameter
