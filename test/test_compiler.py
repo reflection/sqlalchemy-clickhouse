@@ -73,13 +73,13 @@ class GroupBySummariesTestCase(BaseTestCase):
 
     def test_group_by_with_cube_with_totals(self):
       stmt = select(
-        [tbl.c.id, tbl.c.name, tbl.c.city, func.SUM(tbl.c.wins).label('wins')]
+        [tbl.c.id, tbl.c.name, tbl.c.city, func.sum(tbl.c.wins).label('wins')]
       ).group_by(
         tbl.c.id, tbl.c.name, tbl.c.city, func.with_cube(), func.with_totals()
       )
       self.assertEqual(
           self.compile(stmt),
-          'SELECT id, name, city, SUM(wins) AS wins FROM nba GROUP BY id, name,'
+          'SELECT id, name, city, sum(wins) AS wins FROM nba GROUP BY id, name,'
           ' city WITH CUBE WITH TOTALS'
       )
 
@@ -156,13 +156,13 @@ class GroupBySummariesDeclarativeTestCase(BaseTestCase):
 
     def test_group_by_with_cube_with_totals(self):
         query = session.query(
-            Nba.id, Nba.name, Nba.city, func.SUM(Nba.wins).label('wins')
+            Nba.id, Nba.name, Nba.city, func.sum(Nba.wins).label('wins')
         ).group_by(
             Nba.id, Nba.name, Nba.city, func.with_cube(), func.with_totals()
         )
         self.assertEqual(
             self.compile(query),
-            'SELECT id AS nba_id, name AS nba_name, city AS nba_city, SUM(wins) AS wins FROM nba GROUP BY id, name, city WITH CUBE WITH TOTALS'
+            'SELECT id AS nba_id, name AS nba_name, city AS nba_city, sum(wins) AS wins FROM nba GROUP BY id, name, city WITH CUBE WITH TOTALS'
         )
 
 class LimitClauseDeclarativeTestCase(BaseTestCase):
